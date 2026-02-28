@@ -1,26 +1,32 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-recoleta: "Recoleta", serif;
+  --font-poppins: var(--font-poppins), "Poppins", sans-serif;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-recoleta: var(--font-recoleta);
+  --font-poppins: var(--font-poppins);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-recoleta);
+  }
+
+  p, body {
+    font-family: var(--font-poppins);
+    /* Screenshot matching styles */
+    font-weight: 300; 
+    line-height: 1.5; /* 47px approximate korar jonno */
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Recoleta loading... */
+@font-face {
+  font-family: 'Recoleta';
+  src: url('/fonts/recoleta-regular.woff2') format('woff2');
+  font-weight: normal;
+  font-display: swap;
 }
