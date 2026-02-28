@@ -89,11 +89,20 @@ function StepText({ scrollYProgress, step, index, total }: any) {
   );
 }
 
+// Desktop dot — exact original
 function StepDot({ scrollYProgress, index, total, onClick }: any) {
   const start = index / total;
   const end = (index + 1) / total;
-  const bgColor = useTransform(scrollYProgress, [start, start + 0.01, end - 0.01, end], ["#6b7280", "#ffffff", "#ffffff", "#6b7280"]);
-  const glowOpacity = useTransform(scrollYProgress, [start, start + 0.05, end - 0.05, end], [0, 1, 1, 0]);
+  const bgColor = useTransform(
+    scrollYProgress,
+    [start, start + 0.01, end - 0.01, end],
+    ["#6b7280", "#ffffff", "#ffffff", "#6b7280"]
+  );
+  const glowOpacity = useTransform(
+    scrollYProgress,
+    [start, start + 0.05, end - 0.05, end],
+    [0, 1, 1, 0]
+  );
   return (
     <div onClick={onClick} className="relative flex items-center justify-center cursor-pointer">
       <motion.div style={{ opacity: glowOpacity }} className="absolute w-8 h-8 rounded-full bg-teal-400/20" />
@@ -126,16 +135,32 @@ function DesktopSection() {
         </h2>
         <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
           <div className="w-full lg:w-[50%] aspect-video relative overflow-hidden">
-            {steps.map((step, i) => <StepImage key={step.id} scrollYProgress={scrollYProgress} step={step} index={i} total={TOTAL} />)}
+            {steps.map((step, i) => (
+              <StepImage key={step.id} scrollYProgress={scrollYProgress} step={step} index={i} total={TOTAL} />
+            ))}
           </div>
           <div className="w-full lg:w-[45%] flex gap-10 items-center">
             <div className="flex-1 h-[350px] relative">
-              {steps.map((step, i) => <StepText key={step.id} scrollYProgress={scrollYProgress} step={step} index={i} total={TOTAL} />)}
+              {steps.map((step, i) => (
+                <StepText key={step.id} scrollYProgress={scrollYProgress} step={step} index={i} total={TOTAL} />
+              ))}
             </div>
+            {/* Desktop vertical stepper */}
             <div className="relative w-[2px] h-90 bg-[#2a3441] rounded-full">
-              <motion.div className="absolute top-0 left-0 w-full bg-white origin-top" style={{ height: lineHeight }} />
+              <motion.div
+                className="absolute top-0 left-0 w-full bg-white origin-top"
+                style={{ height: lineHeight }}
+              />
               <div className="absolute inset-0 flex flex-col justify-between items-center">
-                {steps.map((_, i) => <StepDot key={i} scrollYProgress={scrollYProgress} index={i} total={TOTAL} onClick={() => scrollToStep(i)} />)}
+                {steps.map((_, i) => (
+                  <StepDot
+                    key={i}
+                    scrollYProgress={scrollYProgress}
+                    index={i}
+                    total={TOTAL}
+                    onClick={() => scrollToStep(i)}
+                  />
+                ))}
               </div>
             </div>
           </div>
@@ -152,7 +177,8 @@ function MobileSection() {
   const fillRef    = useRef<HTMLDivElement>(null);
   const imgRefs    = useRef<(HTMLImageElement | null)[]>([]);
   const textRefs   = useRef<(HTMLDivElement | null)[]>([]);
-  const dotRefs    = useRef<(HTMLDivElement | null)[]>([]);
+  const dotCoreRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const dotGlowRefs = useRef<(HTMLDivElement | null)[]>([]);
   const rafRef     = useRef<number>(0);
 
   const applyXStyle = useCallback(
@@ -165,19 +191,11 @@ function MobileSection() {
 
       let x: number, op: number;
 
-      if (progress < start) {
-        x = 100; op = 0;
-      } else if (progress < enter) {
-        x  = mapRange(progress, start, enter, 100, 0);
-        op = mapRange(progress, start, enter, 0, 1);
-      } else if (progress < exitS) {
-        x = 0; op = 1;
-      } else if (progress < end) {
-        x  = mapRange(progress, exitS, end, 0, -100);
-        op = mapRange(progress, exitS, end, 1, 0);
-      } else {
-        x = -100; op = 0;
-      }
+      if (progress < start)       { x = 100;  op = 0; }
+      else if (progress < enter)  { x = mapRange(progress, start, enter, 100, 0); op = mapRange(progress, start, enter, 0, 1); }
+      else if (progress < exitS)  { x = 0;    op = 1; }
+      else if (progress < end)    { x = mapRange(progress, exitS, end, 0, -100); op = mapRange(progress, exitS, end, 1, 0); }
+      else                        { x = -100; op = 0; }
 
       el.style.transform = `translateX(${x}%)`;
       el.style.opacity   = String(op);
@@ -195,24 +213,46 @@ function MobileSection() {
       const totalScroll = section.offsetHeight - window.innerHeight;
       const progress    = clamp(scrolled / totalScroll, 0, 1);
 
+      // fill line — same as desktop lineHeight 0→100%
       if (fillRef.current) fillRef.current.style.width = `${progress * 100}%`;
 
       const activeIdx = Math.min(Math.floor(progress * TOTAL), TOTAL - 1);
 
-      dotRefs.current.forEach((dot, i) => {
-        if (!dot) return;
-        const isActive = i === activeIdx;
-        const isDone   = i < activeIdx;
-        const core = dot.querySelector<HTMLElement>(".dot-core-m");
-        if (core) {
-          core.style.background = isActive ? "#ffffff" : isDone ? "#038c75" : "#4a5568";
-          core.style.transform  = isActive ? "scale(1.3)" : "scale(1)";
-        }
-        const glow = dot.querySelector<HTMLElement>(".dot-glow-m");
-        if (glow) glow.style.opacity = isActive ? "1" : "0";
+      // dots — mirror desktop StepDot logic exactly
+      dotCoreRefs.current.forEach((core, i) => {
+        if (!core) return;
+        const start   = i / TOTAL;
+        const end     = (i + 1) / TOTAL;
+        const startT  = start + 0.01;
+        const endT    = end - 0.01;
+
+        // same color transitions as desktop: #6b7280 → #fff → #6b7280
+        let bg: string;
+        if (progress < start || progress >= end) bg = "#6b7280";
+        else if (progress < startT) bg = mapRange(progress, start, startT, 0, 1) > 0.5 ? "#ffffff" : "#6b7280";
+        else if (progress < endT)   bg = "#ffffff";
+        else                        bg = mapRange(progress, endT, end, 0, 1) > 0.5 ? "#6b7280" : "#ffffff";
+
+        core.style.backgroundColor = bg;
       });
 
-      imgRefs.current.forEach((el, i)  => applyXStyle(el, progress, i));
+      dotGlowRefs.current.forEach((glow, i) => {
+        if (!glow) return;
+        const start  = i / TOTAL;
+        const end    = (i + 1) / TOTAL;
+        const startG = start + 0.05;
+        const endG   = end - 0.05;
+
+        let op: number;
+        if (progress < start || progress >= end) op = 0;
+        else if (progress < startG) op = mapRange(progress, start, startG, 0, 1);
+        else if (progress < endG)   op = 1;
+        else                        op = mapRange(progress, endG, end, 1, 0);
+
+        glow.style.opacity = String(op);
+      });
+
+      imgRefs.current.forEach((el, i)  => applyXStyle(el,  progress, i));
       textRefs.current.forEach((el, i) => applyXStyle(el, progress, i));
     });
   }, [applyXStyle]);
@@ -241,102 +281,106 @@ function MobileSection() {
       className="bg-[#0b1219] text-white relative"
       style={{ height: `${TOTAL * 150}vh` }}
     >
-      <div className="sticky top-0 h-svh flex flex-col overflow-hidden px-5 pt-8 pb-6">
+      <div className="sticky top-0 h-svh flex flex-col justify-center overflow-hidden px-5">
+        <div className="flex flex-col w-full gap-14 md:gap-0">
 
-        {/* ── Title: 1 line, no wrap ── */}
-        <div className="flex-shrink-0 mb-4">
+          {/* Title */}
           <h2
             className="font-serif font-normal whitespace-nowrap"
             style={{
-              fontSize: "clamp(1.15rem, 5.5vw, 1.9rem)",
+              fontSize: "clamp(1.1rem, 5.2vw, 1.75rem)",
               background: "linear-gradient(180deg,#61ffe6 15%,#038c75 85%)",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               lineHeight: 1.2,
+              marginBottom: "clamp(16px, 4vw, 24px)",
             }}
           >
             The Secret Sauce Is In Targeting
           </h2>
-        </div>
 
-        {/* ── Image: no background ── */}
-        <div
-          className="w-full flex-shrink-0 overflow-hidden"
-          style={{ aspectRatio: "16/9", position: "relative" }}
-        >
-          {steps.map((step, i) => (
-            <img
-              key={step.id}
-              ref={(el) => { imgRefs.current[i] = el; }}
-              src={step.image}
-              alt={step.title}
-              className="w-full h-full object-contain"
-              style={{
-                position: "absolute", inset: 0,
-                willChange: "transform, opacity",
-                opacity: i === 0 ? 1 : 0,
-                transform: i === 0 ? "translateX(0%)" : "translateX(100%)",
-              }}
-            />
-          ))}
-        </div>
-
-        {/* ── Text: flex-1 so it fills remaining space tightly ── */}
-        <div className="flex-1 relative overflow-hidden mt-4" style={{ minHeight: 0 }}>
-          {steps.map((step, i) => (
-            <div
-              key={step.id}
-              ref={(el) => { textRefs.current[i] = el; }}
-              style={{
-                position: "absolute", inset: 0,
-                willChange: "transform, opacity",
-                opacity: i === 0 ? 1 : 0,
-                transform: i === 0 ? "translateX(0%)" : "translateX(100%)",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "flex-start",
-              }}
-            >
-              <h3
-                className="font-serif font-normal mb-2 leading-tight"
+          {/* Image */}
+          <div
+            style={{
+              width: "100%", aspectRatio: "16/9",
+              position: "relative", overflow: "hidden",
+              marginBottom: "clamp(16px, 4vw, 24px)",
+            }}
+          >
+            {steps.map((step, i) => (
+              <img
+                key={step.id}
+                ref={(el) => { imgRefs.current[i] = el; }}
+                src={step.image}
+                alt={step.title}
+                className="w-full h-full object-contain"
                 style={{
-                  fontSize: "clamp(1.1rem, 5vw, 1.45rem)",
-                  background: "linear-gradient(180deg,#61ffe6,#038c75)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
+                  position: "absolute", inset: 0,
+                  willChange: "transform, opacity",
+                  opacity: i === 0 ? 1 : 0,
+                  transform: i === 0 ? "translateX(0%)" : "translateX(100%)",
+                }}
+              />
+            ))}
+          </div>
+
+          {/* Text */}
+          <div
+            style={{
+              position: "relative",
+              height: "clamp(128px, 32vw, 172px)",
+              overflow: "hidden",
+              marginBottom: "clamp(20px, 5vw, 28px)",
+            }}
+          >
+            {steps.map((step, i) => (
+              <div
+                key={step.id}
+                ref={(el) => { textRefs.current[i] = el; }}
+                style={{
+                  position: "absolute", inset: 0,
+                  willChange: "transform, opacity",
+                  opacity: i === 0 ? 1 : 0,
+                  transform: i === 0 ? "translateX(0%)" : "translateX(100%)",
                 }}
               >
-                {step.title}
-              </h3>
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.82)",
-                  fontSize: "clamp(0.78rem, 3.5vw, 0.9rem)",
-                  lineHeight: 1.65,
-                }}
-              >
-                {step.description}
-              </p>
-            </div>
-          ))}
-        </div>
+                <h3
+                  className="font-serif font-normal leading-tight"
+                  style={{
+                    fontSize: "clamp(1.05rem, 4.8vw, 1.35rem)",
+                    background: "linear-gradient(180deg,#61ffe6,#038c75)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    marginBottom: "clamp(6px, 1.5vw, 10px)",
+                  }}
+                >
+                  {step.title}
+                </h3>
+                <p style={{ color: "rgba(255,255,255,0.82)", fontSize: "clamp(0.76rem, 3.4vw, 0.88rem)", lineHeight: 1.65 }}>
+                  {step.description}
+                </p>
+              </div>
+            ))}
+          </div>
 
-        {/* ── Stepper: tight to bottom, no excess gap ── */}
-        <div className="flex-shrink-0 pt-4">
-          <div className="relative w-full h-[2px] bg-[#2a3441] rounded-full">
-            {/* Progress fill */}
+          {/* ── Horizontal stepper — mirrors desktop vertical stepper exactly ── */}
+          {/* Track: same #2a3441 bg */}
+          <div style={{ position: "relative", width: "100%", height: 2, background: "#2a3441", borderRadius: 99 }}>
+
+            {/* Fill: same white, origin-left (desktop uses origin-top) */}
             <div
               ref={fillRef}
               style={{
                 position: "absolute", top: 0, left: 0,
-                height: "100%",
+                height: "100%", width: "0%",
                 background: "#ffffff",
                 borderRadius: 99,
-                width: "0%",
+                transformOrigin: "left center",
                 willChange: "width",
               }}
             />
-            {/* Dots */}
+
+            {/* Dots: w-3 h-3 (12px) core + w-8 h-8 (32px) glow — same as desktop */}
             <div
               style={{
                 position: "absolute", inset: 0,
@@ -346,36 +390,35 @@ function MobileSection() {
               {steps.map((_, i) => (
                 <div
                   key={i}
-                  ref={(el) => { dotRefs.current[i] = el; }}
                   onClick={() => scrollToStep(i)}
                   style={{
                     position: "relative",
                     display: "flex", alignItems: "center", justifyContent: "center",
+                    // w-8 h-8 = 32px — same click target as desktop
                     width: 32, height: 32,
                     cursor: "pointer",
                   }}
                 >
-                  {/* Glow */}
+                  {/* Glow: bg-teal-400/20 = rgba(45,212,191,0.2) — same as desktop */}
                   <div
-                    className="dot-glow-m"
+                    ref={(el) => { dotGlowRefs.current[i] = el; }}
                     style={{
                       position: "absolute",
-                      width: 30, height: 30,
+                      width: 32, height: 32,
                       borderRadius: "50%",
-                      background: "rgba(97,255,230,0.15)",
+                      background: "rgba(45,212,191,0.2)", // teal-400/20
                       opacity: i === 0 ? 1 : 0,
-                      transition: "opacity 0.3s",
+                      transition: "opacity 0.15s",
                     }}
                   />
-                  {/* Core */}
+                  {/* Core: w-3 h-3 = 12px — same as desktop */}
                   <div
-                    className="dot-core-m"
+                    ref={(el) => { dotCoreRefs.current[i] = el; }}
                     style={{
-                      width: 10, height: 10,
+                      width: 12, height: 12,
                       borderRadius: "50%",
-                      background: i === 0 ? "#ffffff" : "#4a5568",
-                      transform: i === 0 ? "scale(1.3)" : "scale(1)",
-                      transition: "background 0.3s, transform 0.3s",
+                      backgroundColor: i === 0 ? "#ffffff" : "#6b7280",
+                      transition: "background-color 0.15s",
                       position: "relative", zIndex: 1,
                     }}
                   />
@@ -383,8 +426,8 @@ function MobileSection() {
               ))}
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
     </section>
   );
