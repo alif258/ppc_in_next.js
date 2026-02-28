@@ -39,7 +39,7 @@ export default function Hero() {
     <section
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative md:h-screen bg-[#045458] overflow-hidden"
+      className="relative md:h-screen bg-[#045458] overflow-hidden pb-20 md:pb-0"
     >
       {/* Inner Core */}
       <div
@@ -116,7 +116,7 @@ export default function Hero() {
         ].map((item) => (
           <div
             key={item.label}
-            className="flex flex-col gap-1 basis-[45%] md:basis-auto"
+            className="flex flex-col gap-1 basis-[45%] md:basis-auto "
           >
             <div className="flex items-center justify-center gap-3">
               <Img src={item.img} height={50} width={50} objectFit="contain" />
@@ -124,7 +124,7 @@ export default function Hero() {
                 {item.value}
               </h3>
             </div>
-            <p className="text-[clamp(10px,1vw,0.85rem)] font-medium tracking-widest text-white opacity-70 md:-mt-6 uppercase">
+            <p className=" text-[clamp(10px,1vw,0.85rem)] font-medium tracking-widest text-white opacity-70 md:-mt-6 uppercase">
               {item.label}
             </p>
           </div>

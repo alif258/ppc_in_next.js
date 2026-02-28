@@ -13,7 +13,7 @@ const steps = [
     id: 1,
     title: "Discovery Targeting",
     description:
-      "Every profitable growth journey begins with discovery. Using AI-powered analysis, broad match, automatic campaigns, and category targeting, we uncover how shoppers search, compare, and explore your category. This reveals hidden demand, untapped traffic, and new growth opportunities your competitors haven't captured yet.",
+      "Every profitable growth journey begins with discovery. Using AI-powered analysis, broad match, automatic campaigns, and category targeting, we uncover how shoppers search, compare, and explore your category. This reveals hidden demand, untapped traffic, and new growth opportunities your competitors haven’t captured yet.",
     image: "/Discovery-Targeting.webp",
   },
   {
@@ -82,7 +82,7 @@ function StepText({ scrollYProgress, step, index, total }: any) {
       <h3 className="font-serif text-[clamp(18px,3.4vw,2.3dvw)] font-normal bg-gradient-to-b from-[#61ffe6] to-[#038c75] bg-clip-text text-transparent mb-[10px]">
         {step.title}
       </h3>
-      <p className="text-white text-[clamp(0.8rem,2vw,1.45rem)]">{step.description}</p>
+      <p className="text-white text-[clamp(0.8rem,2vw,1.45rem)]  ">{step.description}</p>
     </motion.div>
   );
 }
@@ -213,7 +213,6 @@ function MobileSection() {
     window.scrollTo({ top: absTop + totalScrollable * ((index + 0.5) / TOTAL), behavior: "smooth" });
   };
 
-  // gap value reused everywhere for consistency
   const GAP = "clamp(48px, 3.8vw, 20px)";
 
   return (
@@ -222,16 +221,10 @@ function MobileSection() {
       className="bg-[#0b1219] text-white relative"
       style={{ height: `${TOTAL * 150}vh` }}
     >
-      {/*
-        justify-center → all content vertically centered on screen
-        py-8 → small breathing room top/bottom so nothing touches edges
-      */}
+    
       <div className="sticky top-0 h-svh flex items-center justify-center overflow-hidden px-5 py-8">
 
-        {/*
-          Inner block — natural height (shrinks to fit content).
-          All gaps via marginBottom so nothing is flex-stretched.
-        */}
+       
         <div className="w-full flex flex-col">
 
           {/* ── Title ── */}
@@ -277,13 +270,11 @@ function MobileSection() {
             ))}
           </div>
 
-          {/* ── Text — fixed height, clips content cleanly ── */}
           <div
-            className="flex-shrink-0"
+            className="flex-shrink-0 text-justify "
             style={{
               position: "relative",
-              // tall enough for the longest description at smallest font
-              height: "clamp(200px, 39vw, 250px)",
+              height: "clamp(200px, 39vw, 150px)",
               overflow: "hidden",
               marginBottom: GAP,
             }}
@@ -311,7 +302,7 @@ function MobileSection() {
                 >
                   {step.title}
                 </h3>
-                <p
+                <p className="text-justify "
                   style={{
                     color: "rgba(255,255,255,0.82)",
                     fontSize: "clamp(0.76rem, 3.4vw, 0.88rem)",
